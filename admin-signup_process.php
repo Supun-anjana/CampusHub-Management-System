@@ -39,6 +39,7 @@ if (empty($fname)) {
 
             Database::iud("UPDATE `admin` SET `fname`='$fname',`lname`='$lname',`mobile`='$mobile',`joined_date`='$joined_date',`status_id`='3' 
             WHERE `email`='" . $_SESSION["admin"]["email"] . "'");
+            
             echo ("done");
         }
     }

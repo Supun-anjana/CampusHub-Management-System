@@ -1,3 +1,7 @@
+<?php
+require "connection.php";
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,7 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="bootstrap.min.css">
-    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="student_login.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <title>CampusHUB</title>
 </head>
@@ -19,44 +23,103 @@
             <div class="form-div">
                 <h1>Create Account</h1>
                 <div class="social-icons">
-                    <a href="#" class="icon"><i class="fa-brands fa-google-plus-g"></i></a>
-                    <a href="#" class="icon"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-google"></i></a>
                     <a href="#" class="icon"><i class="fa-brands fa-github"></i></a>
-                    <a href="#" class="icon"><i class="fa-brands fa-linkedin-in"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-microsoft"></i></a>
                 </div>
-                <span>or use your email for registration</span>
-                <input type="text" placeholder="First Name" id="fname" class="capitalize-input">
-                <input type="text" placeholder="Last Name" id="lname" class="capitalize-input">
-                <input type="text" placeholder="Mobile" id="mobile">
-                <button id="normal_button1" onclick="admin_signup();">Sign Up</button>
+                <span>fill the following details to continue</span>
+                <input type="text" placeholder="Student ID | NIC" id="st_id" class="capitalize-input">
 
-                <button class="btn btn-primary d-none" style="border-radius: 0;" type="button" id="loading_button1">
+                <select class="form-select mt-2 mb-2" aria-label="Default select example" id="institute" onchange="load_branch();">
+                    <option selected value="0">Select the institute</option>
+                    <?php
+                    $institute_rs = Database::search("SELECT * FROM `institute`");
+                    $institute_num = $institute_rs->num_rows;
+                    for ($i = 0; $i < $institute_num; $i++) {
+                        $institute_data = $institute_rs->fetch_assoc();
+                    ?>
+                        <option value="<?php echo $institute_data["id"]; ?>"><?php echo $institute_data["name"]; ?></option>
+                    <?php
+                    }
+                    ?>
+                </select>
+
+                <select class="form-select mt-2 mb-2" aria-label="Default select example" id="branch" type="button" disabled>
+                    <option selected value="0">Select your branch</option>
+                </select>
+
+                <button onclick="student_signup_v2();" id="sign_up_btn1">Sign Up</button>
+                <button class="btn btn-primary d-none" style="border-radius: 0;" type="button" id="loading_btn1">
                     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                    <span role="status">Signing up...</span>
+                    <span role="status">Creating account...</span>
                 </button>
+
             </div>
         </div>
 
         <!-- Sign In Section -->
         <div class="form-container sign-in">
-            <div class="form-div">
+            <div class="form-div d-none" id="signup_form1">
+                <h1>Sign Up</h1>
+                <div class="social-icons">
+                    <a href="#" class="icon"><i class="fa-brands fa-google"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-microsoft"></i></a>
+                </div>
+                <span>fill the following details to continue ...</span>
+                <input type="text" placeholder="First Name" id="st_fname" class="capitalize-input">
+                <input type="text" placeholder="Last Name" id="st_lname" class="capitalize-input">
+
+                <input type="email" placeholder="Email Address" id="st_email">
+                <input type="password" placeholder="Password" id="st_password">
+
+                <button onclick="student_signup_v1();" id="sign_up_btn">Sign Up</button>
+                <button class="btn btn-primary d-none" style="border-radius: 0;" type="button" id="loading_btn">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    <span role="status">Signing up...</span>
+                </button>
+            </div>
+
+            <div class="form-div" id="signin_form">
                 <h1>Sign In</h1>
                 <div class="social-icons">
-                    <a href="#" class="icon"><i class="fa-brands fa-google-plus-g"></i></a>
-                    <a href="#" class="icon"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-google"></i></a>
                     <a href="#" class="icon"><i class="fa-brands fa-github"></i></a>
-                    <a href="#" class="icon"><i class="fa-brands fa-linkedin-in"></i></a>
+                    <a href="#" class="icon"><i class="fa-brands fa-microsoft"></i></a>
                 </div>
                 <span>or use your email password</span>
-                <input type="email" placeholder="Email Address" id="signin_email">
-                <input type="password" placeholder="Password" id="signin_password">
-                <a class="btn forgot-pass border-0"  data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample">Forget Your Password?</a>
-                
-                <button onclick="admin_signin();" id="normal_button2">Sign In</button>
 
-                <button class="btn btn-primary d-none" style="border-radius: 0;" type="button" id="loading_button2">
+                <?php
+                
+                $email = "";
+                $password = "";
+
+                if (isset($_COOKIE["student_email"])) {
+                    $email = $_COOKIE["student_email"];
+                }
+
+                if (isset($_COOKIE["student_password"])) {
+                    $password = $_COOKIE["student_password"];
+                }
+
+                ?>
+
+
+                <input type="email" placeholder="Email Address" id="signin_email" value="<?php echo $email; ?>">
+                <input type="password" placeholder="Password" id="signin_password" value="<?php echo $password; ?>">
+
+                <div class="d-flex justify-content-start align-items-center w-100">
+                    <div class="form-check text-start d-flex align-items-center gap-2">
+                        <input class="form-check-input custom-checkbox" type="checkbox" id="rememberme">
+                        <label class="form-check-label text-light-50 m-0" for="rememberme" style="color: #cbd5e1; cursor: pointer;">Remember Me</label>
+                    </div>
+                    </div>
+                <a class="btn forgot-pass border-0 m-0 p-0" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample">Forget Your Password?</a>
+                <button onclick="student_signin();" id="signin_btn">Sign In</button>
+
+                <button class="btn btn-primary d-none" style="border-radius: 0;" type="button" id="signingin_btn">
                     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                    <span role="status">Loading...</span>
+                    <span role="status">Signing in ...</span>
                 </button>
             </div>
         </div>
@@ -112,11 +175,16 @@
             <div class="toggle">
                 <div class="toggle-panel toggle-left">
                     <h1>Welcome Back!</h1>
-                    <p>Access the central control network to manage institutional operations, monitor system diagnostics, and maintain real-time campus data compliance workflows.</p>
+                    <p>Already have an account? Sign in now to access your student dashboard, courses, and academic activities.</p>
                 </div>
                 <div class="toggle-panel toggle-right">
-                    <h1>Hello, Friend!</h1>
-                    <p>Initialize your administrative credentials to establish secure server-side sessions, configure portal privileges, and oversee global campus integration parameters.</p>
+                    <h1>Hello, Student!</h1>
+                    <p>Join CampusHUB today! Create your account to step into campus life - register for upcoming events, join exciting clubs, and dive into sports!</p>
+                    <button onclick="toggle_forms();" id="toggle_btn">Sign Up</button>
+                    <button class="btn btn-primary d-none" style="border-radius: 0;" type="button" id="loading_signup">
+                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        <span role="status">Loading...</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -124,10 +192,8 @@
 
     <!-- Sweetalert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <!-- Bootstrap JS -->
     <script src="bootstrap.bundle.min.js"></script>
-
     <!-- Login Frontend -->
     <script src="script.js"></script>
 </body>

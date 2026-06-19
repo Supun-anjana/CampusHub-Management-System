@@ -326,3 +326,263 @@ function admin_reset_password() {
         }
     }
 }
+
+function load_admins(page) {
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = function () {
+        if (req.readyState == 4 && req.status == 200) {
+            var resp = req.responseText;
+            document.getElementById("admin_table").innerHTML = resp;
+        }
+    }
+
+    req.open("GET", "load_admins.php?page=" + page, true);
+    req.send();
+}
+
+function toggle_forms() {
+    const toggleBtn = document.getElementById('toggle_btn');
+    const signUpForm = document.getElementById('signup_form1');
+    const signInForm = document.getElementById('signin_form');
+
+    toggleBtn.classList.add("d-none");
+    document.getElementById("loading_signup").classList.remove("d-none");
+
+    setTimeout(() => {
+        toggleBtn.classList.remove("d-none");
+        toggleBtn.innerHTML = "Sign In";
+        document.getElementById("loading_signup").classList.add("d-none");
+
+        if (!signInForm.classList.contains("d-none")) {
+
+            signInForm.style.transition = "opacity 0.3s ease-in-out";
+            signInForm.style.opacity = "0";
+
+            setTimeout(() => {
+                signInForm.classList.add("d-none");
+
+                signUpForm.classList.remove("d-none");
+                signUpForm.style.display = "flex";
+                signUpForm.style.opacity = "0";
+
+                setTimeout(() => {
+                    signUpForm.style.transition = "opacity 0.3s ease-in-out";
+                    signUpForm.style.opacity = "1";
+                }, 50);
+
+
+            }, 300);
+
+        } else {
+            toggleBtn.innerHTML = "Sign Up";
+
+            signUpForm.style.transition = "opacity 0.3s ease-in-out";
+            signUpForm.style.opacity = "0";
+
+            setTimeout(() => {
+                signUpForm.classList.add("d-none");
+
+                signInForm.classList.remove("d-none");
+                signInForm.style.display = "flex";
+                signInForm.style.opacity = "0";
+
+                setTimeout(() => {
+                    signInForm.style.transition = "opacity 0.3s ease-in-out";
+                    signInForm.style.opacity = "1";
+                }, 50);
+
+            }, 300);
+        }
+    }, 600);
+}
+
+function student_signup_v1() {
+    var fname = document.getElementById("st_fname");
+    var lname = document.getElementById("st_lname");
+    var email = document.getElementById("st_email");
+    var password = document.getElementById("st_password");
+
+    var form = new FormData();
+    form.append("fname", fname.value);
+    form.append("lname", lname.value);
+    form.append("email", email.value);
+    form.append("password", password.value);
+
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (request.readyState == 4 && request.status == 200) {
+            var resp = request.responseText;
+            if (resp == "success") {
+                document.getElementById("loading_btn").classList.remove("d-none");
+                document.getElementById("sign_up_btn").classList.add("d-none");
+
+                setTimeout(() => {
+                    container.classList.add("active");
+                }, 600);
+            } else {
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+
+                Toast.fire({
+                    icon: "error",
+                    theme: 'dark',
+                    text: resp
+                });
+            }
+        }
+    }
+
+    request.open("POST", "student-signup_process_v1.php", true);
+    request.send(form);
+}
+
+function student_signup_v2(email) {
+    var email = document.getElementById("st_email");
+    if (email.value.trim() == "") {
+        email = document.getElementById("signin_email");
+    }
+    var st_id = document.getElementById("st_id");
+    var institute = document.getElementById("institute");
+    var branch = document.getElementById("branch");
+
+    var form = new FormData();
+    form.append("email", email.value);
+    form.append("st_id", st_id.value);
+    form.append("institute", institute.value);
+    form.append("branch", branch.value);
+
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (request.readyState == 4 && request.status == 200) {
+            var resp = request.responseText;
+            if (resp == "success") {
+                document.getElementById("loading_btn1").classList.remove("d-none");
+                document.getElementById("sign_up_btn1").classList.add("d-none");
+
+                setTimeout(() => {
+                    document.getElementById("loading_btn1").classList.add("d-none");
+                    document.getElementById("sign_up_btn1").classList.remove("d-none");
+
+                    Swal.fire({
+                        theme: 'dark',
+                        title: "Success",
+                        text: "Account created successfully! you have to wait until the admin approves your account. Press OK to reload the page.",
+                        icon: "success"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.reload();
+                        }
+                    });
+                }, 1000);
+            } else {
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+
+                Toast.fire({
+                    icon: "error",
+                    theme: 'dark',
+                    text: resp
+                });
+            }
+        }
+    }
+
+    request.open("POST", "student-signup_process_v2.php", true);
+    request.send(form);
+}
+
+function student_signin() {
+    var email = document.getElementById("signin_email");
+    var password = document.getElementById("signin_password");
+    var rememberme = document.getElementById("rememberme");
+
+    var form = new FormData();
+    form.append("email", email.value);
+    form.append("password", password.value);
+    form.append("rememberme", rememberme.checked);
+
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (request.readyState == 4 && request.status == 200) {
+            var resp = request.responseText;
+            if (resp == "done") {
+                document.getElementById("signingin_btn").classList.remove("d-none");
+                document.getElementById("signin_btn").classList.add("d-none");
+
+                setTimeout(() => {
+                    window.location = "student-dashboard.php";
+                }, 2000);
+            } else if (resp == "incomplete") {
+                document.getElementById("signingin_btn").classList.remove("d-none");
+                document.getElementById("signin_btn").classList.add("d-none");
+
+                setTimeout(() => {
+                    container.classList.add("active");
+                }, 600);
+            } else {
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+
+                Toast.fire({
+                    icon: "error",
+                    theme: 'dark',
+                    text: resp
+                });
+            }
+        }
+    }
+
+    request.open("POST", "student-signin_process.php", true);
+    request.send(form);
+}
+
+function load_branch() {
+    var institute = document.getElementById("institute").value;
+    var branchSelect = document.getElementById("branch");
+
+    if (institute == "0") {
+        branchSelect.innerHTML = '<option selected value="0">Select your branch</option>';
+        branchSelect.disabled = true;
+        return;
+    }
+
+    var r = new XMLHttpRequest();
+    r.onreadystatechange = function () {
+        if (r.status == 200 && r.readyState == 4) {
+            var resp = r.responseText;
+            branchSelect.innerHTML = '<option selected value="0">Select your branch</option>' + resp;
+            branchSelect.disabled = false;
+        }
+    }
+
+    r.open("GET", "load_branch.php?institute_id=" + institute, true);
+    r.send();
+}
+
